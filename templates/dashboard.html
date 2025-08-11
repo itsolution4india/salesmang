@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="w-full px-6 py-6 mx-auto">
+  <!-- Header -->
+  <div class="flex flex-wrap justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-slate-700">Lead Management Dashboard</h1>
+    <div class="flex items-center space-x-4">
+      <span class="text-sm text-slate-500">Welcome back, {{ request.user.get_full_name }}</span>
+      <div class="w-10 h-10 rounded-full bg-gradient-to-tl from-purple-700 to-pink-500 flex items-center justify-center text-white">
+        <i class="ni ni-single-02"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards Row -->
+  <div class="flex flex-wrap -mx-3 mb-6">
+    <!-- Total Leads Card -->
+    <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+      <div class="relative flex flex-col min-w-0 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="flex-auto p-4">
+          <div class="flex flex-row -mx-3">
+            <div class="flex-none w-2/3 max-w-full px-3">
+              <div>
+                <p class="mb-0 font-sans font-semibold leading-normal text-sm">Total Leads</p>
+                <h5 class="mb-0 font-bold">
+                  {{ total_leads|default:"0" }}
+                </h5>
+              </div>
+            </div>
+            <div class="px-3 text-right basis-1/3">
+              <div class="inline-block w-12 h-12 text-center rounded-lg bg-gradient-to-tl from-purple-700 to-pink-500">
+                <i class="ni ni-collection text-lg relative top-3.5 text-white"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Allocated Leads Card -->
+    <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+      <div class="relative flex flex-col min-w-0 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="flex-auto p-4">
+          <div class="flex flex-row -mx-3">
+            <div class="flex-none w-2/3 max-w-full px-3">
+              <div>
+                <p class="mb-0 font-sans font-semibold leading-normal text-sm">Allocated Leads</p>
+                <h5 class="mb-0 font-bold">
+                  {{ allocated_leads|default:"0" }}
+                  {% if allocation_rate > 0 %}
+                  <span class="leading-normal text-sm font-weight-bolder text-lime-500">+{{ allocation_rate }}%</span>
+                  {% endif %}
+                </h5>
+              </div>
+            </div>
+            <div class="px-3 text-right basis-1/3">
+              <div class="inline-block w-12 h-12 text-center rounded-lg bg-gradient-to-tl from-blue-600 to-cyan-400">
+                <i class="ni ni-send text-lg relative top-3.5 text-white"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contacted Leads Card -->
+    <div class="w-full max-w-full px-3 mb-6 sm:w-1/2 sm:flex-none xl:mb-0 xl:w-1/4">
+      <div class="relative flex flex-col min-w-0 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="flex-auto p-4">
+          <div class="flex flex-row -mx-3">
+            <div class="flex-none w-2/3 max-w-full px-3">
+              <div>
+                <p class="mb-0 font-sans font-semibold leading-normal text-sm">Contacted Leads</p>
+                <h5 class="mb-0 font-bold">
+                  {{ contacted_leads|default:"0" }}
+                  {% if contact_rate > 0 %}
+                  <span class="leading-normal text-sm font-weight-bolder text-lime-500">+{{ contact_rate }}%</span>
+                  {% endif %}
+                </h5>
+              </div>
+            </div>
+            <div class="px-3 text-right basis-1/3">
+              <div class="inline-block w-12 h-12 text-center rounded-lg bg-gradient-to-tl from-green-600 to-lime-400">
+                <i class="ni ni-check-bold text-lg relative top-3.5 text-white"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion Rate Card -->
+    <div class="w-full max-w-full px-3 sm:w-1/2 sm:flex-none xl:w-1/4">
+      <div class="relative flex flex-col min-w-0 break-words bg-white shadow-soft-xl rounded-2xl bg-clip-border">
+        <div class="flex-auto p-4">
+          <div class="flex flex-row -mx-3">
+            <div class="flex-none w-2/3 max-w-full px-3">
+              <div>
+                <p class="mb-0 font-sans font-semibold leading-normal text-sm">Conversion Rate</p>
+                <h5 class="mb-0 font-bold">
+                  {{ conversion_rate|default:"0" }}%
+                  {% if conversion_improvement > 0 %}
+                  <span class="leading-normal text-sm font-weight-bolder text-lime-500">+{{ conversion_improvement }}%</span>
+                  {% endif %}
+                </h5>
+              </div>
+            </div>
+            <div class="px-3 text-right basis-1/3">
+              <div class="inline-block w-12 h-12 text-center rounded-lg bg-gradient-to-tl from-red-600 to-rose-400">
+                <i class="ni ni-chart-bar-32 text-lg relative top-3.5 text-white"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Uploads and Allocations -->
+  <div class="flex flex-wrap mt-6 -mx-3">
+    <!-- Recent Uploads -->
+    <div class="w-full max-w-full px-3 lg:w-7/12 lg:flex-none">
+      <div class="border-black/12.5 shadow-soft-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+        <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
+          <div class="flex justify-between items-center">
+            <h6>Recent Lead Files</h6>
+            <a href="" class="text-xs font-semibold text-purple-600 hover:text-purple-800">
+              Upload New
+            </a>
+          </div>
+        </div>
+        <div class="flex-auto p-6 px-0 pb-2">
+          <div class="overflow-x-auto">
+            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+              <thead class="align-bottom">
+                <tr>
+                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Filename</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Leads</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Allocated</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for file in recent_files %}
+                <tr>
+                  <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                    <div class="flex px-2 py-1">
+                      <div class="flex flex-col justify-center">
+                        <h6 class="mb-0 leading-normal text-sm">{{ file.original_filename|truncatechars:30 }}</h6>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                    <span class="bg-gradient-to-tl 
+                      {% if file.status == 'ready' %}from-blue-600 to-cyan-400
+                      {% elif file.status == 'allocated' %}from-green-600 to-lime-400
+                      {% elif file.status == 'error' %}from-red-600 to-rose-400
+                      {% else %}from-gray-600 to-slate-300{% endif %}
+                      px-2.5 text-xs rounded-1.8 py-1.4 inline-block whitespace-nowrap text-center align-baseline font-bold uppercase leading-none text-white">
+                      {{ file.get_status_display }}
+                    </span>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs">{{ file.total_numbers }}</span>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <div class="flex items-center justify-center">
+                      <span class="mr-2 font-semibold leading-tight text-xs">{{ file.allocated_numbers }}</span>
+                      <div class="w-1/2">
+                        <div class="text-xs h-1.5 w-full overflow-visible rounded-lg bg-gray-200">
+                          <div class="duration-600 ease-soft -mt-0.4 -ml-px flex h-1.5 w-{{ file.allocation_percentage }} flex-col justify-center overflow-hidden whitespace-nowrap rounded-lg bg-gradient-to-tl from-blue-600 to-cyan-400 text-center text-white transition-all" 
+                               role="progressbar" 
+                               aria-valuenow="{{ file.allocation_percentage }}" 
+                               aria-valuemin="0" 
+                               aria-valuemax="100"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs text-slate-400">{{ file.created_at|date:"M d, Y" }}</span>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-500">No recent lead files found</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Allocations -->
+    <div class="w-full max-w-full px-3 mt-6 lg:mt-0 lg:w-5/12 lg:flex-none">
+      <div class="border-black/12.5 shadow-soft-xl relative flex h-full min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+        <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
+          <h6>Recent Allocations</h6>
+        </div>
+        <div class="flex-auto p-6">
+          <div class="before:border-r-solid relative before:absolute before:top-0 before:left-4 before:h-full before:border-r-2 before:border-r-slate-100 before:content-[''] before:lg:-ml-px">
+            {% for allocation in recent_allocations %}
+            <div class="relative mb-4 mt-0 after:clear-both after:table after:content-['']">
+              <span class="w-6.5 h-6.5 text-base absolute left-4 z-10 inline-flex -translate-x-1/2 items-center justify-center rounded-full bg-white text-center font-semibold shadow-soft-2xl">
+                <i class="relative z-10 text-transparent ni leading-none ni-single-copy-04 leading-pro bg-gradient-to-tl from-purple-700 to-pink-500 bg-clip-text fill-transparent"></i>
+              </span>
+              <div class="ml-11.252 pt-1.4 lg:max-w-120 relative -top-1.5 w-auto">
+                <h6 class="mb-0 font-semibold leading-normal text-sm text-slate-700">
+                  {{ allocation.user.get_full_name }} allocated {{ allocation.get_allocated_count }} leads
+                </h6>
+                <p class="mt-1 mb-0 font-semibold leading-tight text-xs text-slate-400">
+                  {{ allocation.created_at|timesince }} ago &middot; {{ allocation.percentage }}% of {{ allocation.file.original_filename|truncatechars:20 }}
+                </p>
+              </div>
+            </div>
+            {% empty %}
+            <div class="relative mb-4 mt-0 after:clear-both after:table after:content-['']">
+              <p class="text-slate-500 text-sm">No recent allocations found</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Status Breakdown and Performance Charts -->
+  <div class="flex flex-wrap mt-6 -mx-3">
+    <!-- Lead Status Breakdown -->
+    <div class="w-full max-w-full px-3 lg:w-5/12 lg:flex-none">
+      <div class="border-black/12.5 shadow-soft-xl relative z-20 flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+        <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
+          <h6>Lead Status Breakdown</h6>
+        </div>
+        <div class="flex-auto p-4">
+          <div class="py-4 pr-1 mb-4 rounded-xl">
+            <canvas id="leadStatusChart" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Over Time -->
+    <div class="w-full max-w-full px-3 mt-6 lg:mt-0 lg:w-7/12 lg:flex-none">
+      <div class="border-black/12.5 shadow-soft-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+        <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
+          <h6>Performance Over Time</h6>
+          <p class="leading-normal text-sm">
+            {% if conversion_improvement > 0 %}
+            <i class="fa fa-arrow-up text-lime-500"></i>
+            <span class="font-semibold">{{ conversion_improvement }}% more</span> conversions this month
+            {% else %}
+            <i class="fa fa-arrow-down text-red-500"></i>
+            <span class="font-semibold">{{ conversion_improvement|slice:"1:" }}% fewer</span> conversions this month
+            {% endif %}
+          </p>
+        </div>
+        <div class="flex-auto p-4">
+          <div>
+            <canvas id="performanceChart" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Performance -->
+  <div class="flex flex-wrap mt-6 -mx-3">
+    <div class="w-full max-w-full px-3">
+      <div class="border-black/12.5 shadow-soft-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
+        <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
+          <div class="flex flex-wrap justify-between items-center">
+            <h6>Team Performance</h6>
+            <div class="flex">
+              <button class="px-3 py-1 mr-2 text-xs font-bold text-white uppercase transition-all bg-transparent border border-solid rounded-lg cursor-pointer xl-max:cursor-not-allowed xl-max:opacity-65 xl-max:pointer-events-none xl-max:bg-gradient-to-tl xl-max:from-purple-700 xl-max:to-pink-500 xl-max:text-white xl-max:border-0 hover:scale-102 hover:shadow-soft-xs active:opacity-85 leading-pro ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 bg-gradient-to-tl from-purple-700 to-pink-500 bg-fuchsia-500 hover:border-fuchsia-500">
+                This Month
+              </button>
+              <button class="px-3 py-1 text-xs font-bold uppercase transition-all bg-transparent border border-solid rounded-lg cursor-pointer xl-max:cursor-not-allowed xl-max:opacity-65 xl-max:pointer-events-none xl-max:bg-gradient-to-tl xl-max:from-purple-700 xl-max:to-pink-500 xl-max:text-white xl-max:border-0 hover:scale-102 hover:shadow-soft-xs active:opacity-85 leading-pro ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 border-fuchsia-500 bg-none text-fuchsia-500 hover:border-fuchsia-500">
+                All Time
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="flex-auto p-6 px-0 pb-2">
+          <div class="overflow-x-auto">
+            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+              <thead class="align-bottom">
+                <tr>
+                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Agent</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Leads</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Contacted</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Interested</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conversion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for agent in team_performance %}
+                <tr>
+                  <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+                    <div class="flex px-2 py-1">
+                      <div class="mr-2">
+                        <img src="https://ui-avatars.com/api/?name={{ agent.user.get_full_name|urlencode }}&background=random" class="inline-flex items-center justify-center mr-2 text-white transition-all duration-200 ease-soft-in-out text-sm h-9 w-9 rounded-xl" alt="{{ agent.user.get_full_name }}" />
+                      </div>
+                      <div class="flex flex-col justify-center">
+                        <h6 class="mb-0 leading-normal text-sm">{{ agent.user.get_full_name }}</h6>
+                        <p class="mb-0 leading-tight text-xs text-slate-400">{{ agent.user.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs">{{ agent.total_leads }}</span>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs">{{ agent.contacted_leads }}</span>
+                    <div class="text-xs h-0.75 w-3/4 mx-auto overflow-visible rounded-lg bg-gray-200">
+                      <div class="duration-600 ease-soft -mt-0.38 -ml-px flex h-1.5 w-{{ agent.contact_rate }} flex-col justify-center overflow-hidden whitespace-nowrap rounded-lg bg-gradient-to-tl from-blue-600 to-cyan-400 text-center text-white transition-all" role="progressbar" aria-valuenow="{{ agent.contact_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs">{{ agent.interested_leads }}</span>
+                    <div class="text-xs h-0.75 w-3/4 mx-auto overflow-visible rounded-lg bg-gray-200">
+                      <div class="duration-600 ease-soft -mt-0.38 -ml-px flex h-1.5 w-{{ agent.interested_rate }} flex-col justify-center overflow-hidden whitespace-nowrap rounded-lg bg-gradient-to-tl from-green-600 to-lime-400 text-center text-white transition-all" role="progressbar" aria-valuenow="{{ agent.interested_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                  </td>
+                  <td class="p-2 leading-normal text-center align-middle bg-transparent border-b text-sm whitespace-nowrap shadow-transparent">
+                    <span class="font-semibold leading-tight text-xs">{{ agent.conversion_rate }}%</span>
+                    <div class="text-xs h-0.75 w-3/4 mx-auto overflow-visible rounded-lg bg-gray-200">
+                      <div class="duration-600 ease-soft -mt-0.38 -ml-px flex h-1.5 w-{{ agent.conversion_rate }} flex-col justify-center overflow-hidden whitespace-nowrap rounded-lg bg-gradient-to-tl from-purple-700 to-pink-500 text-center text-white transition-all" role="progressbar" aria-valuenow="{{ agent.conversion_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-500">No team performance data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart Scripts -->
+<script>
+  // Lead Status Chart
+  var leadStatusCtx = document.getElementById('leadStatusChart').getContext('2d');
+  var leadStatusChart = new Chart(leadStatusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: JSON.parse('{{ lead_status_labels|escapejs }}'),
+      datasets: [{
+        data: JSON.parse('{{ lead_status_values|escapejs }}'),
+        backgroundColor: [
+          '#6366f1', '#3b82f6', '#10b981', '#ef4444', '#64748b', '#f59e0b'
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              let value = context.raw || 0;
+              let total = context.dataset.data.reduce((a, b) => a + b, 0);
+              let percentage = Math.round((value / total) * 100);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      },
+      cutout: '70%'
+    }
+  });
+
+  // Performance Chart
+  var performanceCtx = document.getElementById('performanceChart').getContext('2d');
+  var performanceChart = new Chart(performanceCtx, {
+    type: 'line',
+    data: {
+      labels: JSON.parse('{{ performance_months|escapejs }}'),
+      datasets: [
+        {
+          label: 'Leads Allocated',
+          data: JSON.parse('{{ allocated_data|escapejs }}'),
+          tension: 0.4,
+          borderColor: '#6366f1',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#6366f1',
+          borderWidth: 2
+        },
+        {
+          label: 'Leads Contacted',
+          data: JSON.parse('{{ contacted_data|escapejs }}'),
+          tension: 0.4,
+          borderColor: '#3b82f6',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#3b82f6',
+          borderWidth: 2
+        },
+        {
+          label: 'Conversions',
+          data: JSON.parse('{{ conversion_data|escapejs }}'),
+          tension: 0.4,
+          borderColor: '#10b981',
+          backgroundColor: 'transparent',
+          pointBackgroundColor: '#10b981',
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            drawBorder: false,
+            display: true,
+            drawOnChartArea: true,
+            drawTicks: false,
+            borderDash: [5, 5],
+            color: 'rgba(203, 213, 225, 0.5)'
+          },
+          ticks: {
+            display: true,
+            padding: 10,
+            color: '#64748b'
+          }
+        },
+        x: {
+          grid: {
+            drawBorder: false,
+            display: false,
+            drawOnChartArea: true,
+            drawTicks: true,
+            color: 'rgba(203, 213, 225, 0.5)'
+          },
+          ticks: {
+            display: true,
+            color: '#64748b',
+            padding: 10
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}
