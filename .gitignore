@@ -1,44 +1,52 @@
-# Python
+@"
+# Python virtual environments
+myenv/
+venv/
+env/
+.venv/
+
+# Python cache files
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
 *.so
+.Python
 
-# Virtual environment
-myenv/
-env/
-venv/
-
-# Django stuff
-*.log
-*.pot
-*.pyc
-db.sqlite3
-media/
-staticfiles/
-
-# Ignore migrations (but keep __init__.py so Django detects the folder)
-*/migrations/*
-!*/migrations/__init__.py
-
-# IDE settings
+# VS Code
 .vscode/
-.idea/
 
-# OS generated files
+# IDEs
+*.swp
+*.swo
+*~
+
+# OS files
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
-
-# SQL files
-*.sql
-
-# Compiled files
-*.egg-info/
-dist/
-build/
+ehthumbs.db
 
 # Environment variables
 .env
-.env.*
-myenv.
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# Node modules (if you have any JS)
+node_modules/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+"@ | Out-File -FilePath .gitignore -Encoding UTF8
