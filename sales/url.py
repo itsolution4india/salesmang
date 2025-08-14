@@ -22,5 +22,11 @@ urlpatterns = [
      path('update-call-record2/', views.update_call_record2, name='update_call_record2'),
     path('delete-call-record2/', views.delete_call_record2, name='delete_call_record2'),
 
+
+
+    #api
+        path('api/login/', views.login_api, name='api-login'),
+        path('api/upload-recording/', views.upload_recording, name='upload-recording'),
+
     
 ] 

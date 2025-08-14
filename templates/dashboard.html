@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block head %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -9,7 +11,7 @@
   <div class="flex flex-wrap justify-between items-center mb-6">
     <h1 class="text-2xl font-bold text-slate-700">Lead Management Dashboard</h1>
     <div class="flex items-center space-x-4">
-      <span class="text-sm text-slate-500">Welcome back, {{ request.user.get_full_name }}</span>
+      <span class="text-sm text-slate-500">Welcome back, {{ request.user.username }}</span>
       <div class="w-10 h-10 rounded-full bg-gradient-to-tl from-purple-700 to-pink-500 flex items-center justify-center text-white">
         <i class="ni ni-single-02"></i>
       </div>
@@ -27,7 +29,7 @@
               <div>
                 <p class="mb-0 font-sans font-semibold leading-normal text-sm">Total Leads</p>
                 <h5 class="mb-0 font-bold">
-                  {{ total_leads|default:"0" }}
+                  {{ totallead|default:"0" }}
                 </h5>
               </div>
             </div>
@@ -121,7 +123,7 @@
   </div>
 
   <!-- Recent Uploads and Allocations -->
-  <div class="flex flex-wrap mt-6 -mx-3">
+    <div class="flex flex-wrap mt-6 -mx-3">
     <!-- Recent Uploads -->
     <div class="w-full max-w-full px-3 lg:w-7/12 lg:flex-none">
       <div class="border-black/12.5 shadow-soft-xl relative flex min-w-0 flex-col break-words rounded-2xl border-0 border-solid bg-white bg-clip-border">
@@ -145,12 +147,12 @@
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Date</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style="overflow-y: scroll;">
                 {% for file in recent_files %}
-                <tr>
+                <tr style="overflow-y: scroll;">
                   <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
                     <div class="flex px-2 py-1">
-                      <div class="flex flex-col justify-center">
+                      <div class="flex flex-col justify-center ">
                         <h6 class="mb-0 leading-normal text-sm">{{ file.original_filename|truncatechars:30 }}</h6>
                       </div>
                     </div>
@@ -204,7 +206,7 @@
         <div class="border-black/12.5 mb-0 rounded-t-2xl border-b-0 border-solid bg-white p-6 pb-0">
           <h6>Recent Allocations</h6>
         </div>
-        <div class="flex-auto p-6">
+        <div class="flex-auto p-6" style="overflow-y: scroll;">
           <div class="before:border-r-solid relative before:absolute before:top-0 before:left-4 before:h-full before:border-r-2 before:border-r-slate-100 before:content-[''] before:lg:-ml-px">
             {% for allocation in recent_allocations %}
             <div class="relative mb-4 mt-0 after:clear-both after:table after:content-['']">
@@ -309,7 +311,7 @@
                         <img src="https://ui-avatars.com/api/?name={{ agent.user.get_full_name|urlencode }}&background=random" class="inline-flex items-center justify-center mr-2 text-white transition-all duration-200 ease-soft-in-out text-sm h-9 w-9 rounded-xl" alt="{{ agent.user.get_full_name }}" />
                       </div>
                       <div class="flex flex-col justify-center">
-                        <h6 class="mb-0 leading-normal text-sm">{{ agent.user.get_full_name }}</h6>
+                        <h6 class="mb-0 leading-normal text-sm">{{ agent.user.username }}</h6>
                         <p class="mb-0 leading-tight text-xs text-slate-400">{{ agent.user.email }}</p>
                       </div>
                     </div>
@@ -354,12 +356,13 @@
 <script>
   // Lead Status Chart
   var leadStatusCtx = document.getElementById('leadStatusChart').getContext('2d');
+
   var leadStatusChart = new Chart(leadStatusCtx, {
     type: 'doughnut',
     data: {
-      labels: JSON.parse('{{ lead_status_labels|escapejs }}'),
+      labels: {{ lead_status_labels|safe }},
       datasets: [{
-        data: JSON.parse('{{ lead_status_values|escapejs }}'),
+        data: {{ lead_status_values|safe }},
         backgroundColor: [
           '#6366f1', '#3b82f6', '#10b981', '#ef4444', '#64748b', '#f59e0b'
         ],
@@ -391,14 +394,15 @@
 
   // Performance Chart
   var performanceCtx = document.getElementById('performanceChart').getContext('2d');
+
   var performanceChart = new Chart(performanceCtx, {
     type: 'line',
     data: {
-      labels: JSON.parse('{{ performance_months|escapejs }}'),
+      labels: {{ performance_months|safe }},
       datasets: [
         {
           label: 'Leads Allocated',
-          data: JSON.parse('{{ allocated_data|escapejs }}'),
+          data: {{ allocated_data|safe }},
           tension: 0.4,
           borderColor: '#6366f1',
           backgroundColor: 'transparent',
@@ -407,7 +411,7 @@
         },
         {
           label: 'Leads Contacted',
-          data: JSON.parse('{{ contacted_data|escapejs }}'),
+          data: {{ contacted_data|safe }},
           tension: 0.4,
           borderColor: '#3b82f6',
           backgroundColor: 'transparent',
@@ -416,7 +420,7 @@
         },
         {
           label: 'Conversions',
-          data: JSON.parse('{{ conversion_data|escapejs }}'),
+          data: {{ conversion_data|safe }},
           tension: 0.4,
           borderColor: '#10b981',
           backgroundColor: 'transparent',
@@ -468,4 +472,5 @@
     }
   });
 </script>
+
 {% endblock %}

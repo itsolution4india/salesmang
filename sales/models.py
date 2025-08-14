@@ -3,7 +3,38 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+class Userdetail(User):
+    user=models.OneToOneField(User,primary_key=True,parent_link=True,on_delete=models.CASCADE)
+    phone=models.CharField(max_length=12)
+    recording_path=models.CharField(max_length=100)
+    mobile_name=models.CharField(max_length=12)
 
+    def __str__(self):
+        return self.user.username
+    
+
+class CallRecording(models.Model):
+    user = models.ForeignKey(Userdetail, on_delete=models.CASCADE, related_name='recordings')
+    filename = models.CharField(max_length=255)
+    original_filename = models.CharField(max_length=255)
+    file_path = models.CharField(max_length=500)
+    file_size = models.BigIntegerField()
+    upload_time = models.DateTimeField(auto_now_add=True)
+    recorded_time = models.DateTimeField(null=True, blank=True)
+    duration = models.DurationField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    call_type = models.CharField(max_length=10, choices=[
+        ('incoming', 'Incoming'),
+        ('outgoing', 'Outgoing'),
+        ('missed', 'Missed')
+    ], null=True, blank=True)
+    is_processed = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-upload_time']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.filename}"
 class LeadFile(models.Model):
     STATUS_CHOICES = [
         ('uploaded', 'Uploaded'),

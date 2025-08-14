@@ -10,13 +10,21 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 import pandas as pd
 from django.db.models import Count, Sum, Q, Avg
+from rest_framework.permissions import IsAuthenticated
 import random
 import os
+from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes,authentication_classes
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import LoginSerializer
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime,timedelta
 from django.utils import timezone
-from .models import LeadFile, LeadAllocation, User,CallRecord
+from .models import LeadFile, LeadAllocation, User,CallRecord,Userdetail,CallRecording
 from django.db import models
 # Create your views here. 
 def admin_check(user):
@@ -61,41 +69,60 @@ def indexpage(request):
 @login_required
 def dashboard(request):
     # Basic counts
+    print(CallRecord.objects.all().count())
+    totallead=(LeadFile.objects.aggregate(total=Sum('total_numbers'))['total'] or 0 )- (CallRecord.objects.all().count())
+    print(totallead)
     total_leads = LeadFile.objects.aggregate(total=Sum('total_numbers'))['total'] or 0
     allocated_leads = LeadFile.objects.aggregate(total=Sum('allocated_numbers'))['total'] or 0
-    allocation_rate = round((allocated_leads / total_leads * 100) if total_leads else 0, 1)
+    allocation_rate = round((allocated_leads / total_leads * 100) if total_leads > 0 else 0, 1)
     
-    # Call record stats
     contacted_leads = CallRecord.objects.filter(status='contacted').count()
-    contact_rate = round((contacted_leads / allocated_leads * 100) if allocated_leads else 0, 1)
+    contact_rate = round((contacted_leads / allocated_leads * 100) if allocated_leads > 0 else 0, 1)
     
     interested_leads = CallRecord.objects.filter(status='interested').count()
-    conversion_rate = round((interested_leads / contacted_leads * 100) if contacted_leads else 0, 1)
+    conversion_rate = round((interested_leads / contacted_leads * 100) if contacted_leads > 0 else 0, 1)
     
-    # Calculate month-over-month improvement
-    last_month = datetime.now() - timedelta(days=30)
+    # Month-over-month improvement
+    today = timezone.now()
+    last_month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+    current_month_start = today.replace(day=1)
+    
+    current_month_interested = CallRecord.objects.filter(
+        status='interested',
+        call_time__gte=current_month_start
+    ).count()
+    
     last_month_interested = CallRecord.objects.filter(
         status='interested',
-        call_time__gte=last_month
+        call_time__gte=last_month_start,
+        call_time__lt=current_month_start
     ).count()
-    conversion_improvement = 0
+    
     if last_month_interested > 0:
         conversion_improvement = round(
-            ((interested_leads - last_month_interested) / last_month_interested * 100), 
-            1
+            ((current_month_interested - last_month_interested) / last_month_interested * 100), 1
         )
+    elif current_month_interested > 0:
+        conversion_improvement = 100
+    else:
+        conversion_improvement = 0
 
-    # Recent files (last 5)
+    # Recent files
     recent_files = LeadFile.objects.order_by('-created_at')[:5]
     for file in recent_files:
-        file.allocation_percentage = round(
-            (file.allocated_numbers / file.total_numbers * 100) if file.total_numbers else 0
-        )
+        file.allocation_percentage = round((file.allocated_numbers / file.total_numbers * 100)
+                                           if file.total_numbers > 0 else 0)
 
-    # Recent allocations (last 5)
+    # Recent allocations
     recent_allocations = LeadAllocation.objects.select_related('user', 'file').order_by('-created_at')[:5]
+    for allocation in recent_allocations:
+        allocated_count = allocation.get_allocated_count() if hasattr(allocation, 'get_allocated_count') \
+                          else (allocation.end_index - allocation.start_index + 1)
+        allocation.allocated_count = allocated_count
+        allocation.percentage = round((allocated_count / allocation.file.total_numbers * 100)
+                                      if allocation.file.total_numbers > 0 else 0, 1)
 
-    # Lead status breakdown
+    # Lead status chart data
     status_counts = {
         'new': CallRecord.objects.filter(status='new').count(),
         'contacted': contacted_leads,
@@ -105,118 +132,87 @@ def dashboard(request):
         'callback': CallRecord.objects.filter(status='callback').count(),
     }
 
-    # Prepare chart data
-    lead_status_data = {
-        'labels': ['New', 'Contacted', 'Interested', 'Not Interested', 'Invalid', 'Callback'],
-        'datasets': [{
-            'data': [
-                status_counts['new'],
-                status_counts['contacted'],
-                status_counts['interested'],
-                status_counts['not_interested'],
-                status_counts['invalid'],
-                status_counts['callback']
-            ],
-            'backgroundColor': [
-                '#6366f1', '#3b82f6', '#10b981', '#ef4444', '#64748b', '#f59e0b'
-            ]
-        }]
-    }
+    lead_status_labels = ['New', 'Contacted', 'Interested', 'Not Interested', 'Invalid', 'Callback']
+    lead_status_values = [
+        status_counts['new'],
+        status_counts['contacted'],
+        status_counts['interested'],
+        status_counts['not_interested'],
+        status_counts['invalid'],
+        status_counts['callback']
+    ]
 
-    # Performance Chart Data
+    # Performance chart (last 12 months)
     months = []
     allocated_data = []
     contacted_data = []
     conversion_data = []
-    
-    today = timezone.now()
+
     for i in range(11, -1, -1):
-        month = today - timedelta(days=30*i)
-        month_name = month.strftime('%b')
-        months.append(month_name)
-        
-        month_start = month.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-        
+        month_start = (today.replace(day=1) - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if month_start.month == 12:
+            month_end = month_start.replace(year=month_start.year + 1, month=1) - timedelta(days=1)
+        else:
+            month_end = month_start.replace(month=month_start.month + 1) - timedelta(days=1)
+
+        month_end = month_end.replace(hour=23, minute=59, second=59, microsecond=999999)
+        months.append(month_start.strftime('%b %Y'))
+
         allocated = LeadAllocation.objects.filter(
             created_at__gte=month_start,
             created_at__lte=month_end
-        ).count()
-        allocated_data.append(allocated)
-        
+        ).aggregate(total=Sum('end_index') - Sum('start_index') + Count('id'))
+        allocated_count = allocated['total'] or 0
+        allocated_data.append(allocated_count)
+
         contacted = CallRecord.objects.filter(
             call_time__gte=month_start,
             call_time__lte=month_end,
             status='contacted'
         ).count()
         contacted_data.append(contacted)
-        
+
         conversions = CallRecord.objects.filter(
             call_time__gte=month_start,
             call_time__lte=month_end,
             status='interested'
         ).count()
         conversion_data.append(conversions)
-    
-    performance_data = {
-        'labels': months,
-        'datasets': [
-            {
-                'label': 'Leads Allocated',
-                'data': allocated_data,
-                'borderColor': '#6366f1',
-                'backgroundColor': 'transparent',
-                'tension': 0.4
-            },
-            {
-                'label': 'Leads Contacted',
-                'data': contacted_data,
-                'borderColor': '#3b82f6',
-                'backgroundColor': 'transparent',
-                'tension': 0.4
-            },
-            {
-                'label': 'Conversions',
-                'data': conversion_data,
-                'borderColor': '#10b981',
-                'backgroundColor': 'transparent',
-                'tension': 0.4
-            }
-        ]
-    }
 
     # Team performance
     team_performance = []
-    agents = User.objects.filter(
-        is_active=True, 
-        allocations__isnull=False
-    ).annotate(
-        total_allocations=Count('allocations')
-    ).distinct()
-    
+    agents = User.objects.filter(is_active=True, allocations__isnull=False).distinct()
     for agent in agents:
-        allocations = agent.allocations.all()
-        total_leads = sum([alloc.get_allocated_count() for alloc in allocations])
-        
+        allocations = LeadAllocation.objects.filter(user=agent)
+        total_allocated = sum(
+            alloc.get_allocated_count() if hasattr(alloc, 'get_allocated_count')
+            else (alloc.end_index - alloc.start_index + 1)
+            for alloc in allocations
+        )
         call_records = CallRecord.objects.filter(allocation__user=agent)
-        contacted_leads = call_records.filter(status='contacted').count()
-        interested_leads = call_records.filter(status='interested').count()
-        
-        contact_rate = round((contacted_leads / total_leads * 100) if total_leads else 0, 1)
-        interested_rate = round((interested_leads / contacted_leads * 100) if contacted_leads else 0, 1)
-        agent_conversion_rate = round((interested_leads / total_leads * 100) if total_leads else 0, 1)
-        
+        contacted_count = call_records.filter(status='contacted').count()
+        interested_count = call_records.filter(status='interested').count()
+
+        contact_rate_agent = round((contacted_count / total_allocated * 100) if total_allocated > 0 else 0, 1)
+        interested_rate_agent = round((interested_count / contacted_count * 100) if contacted_count > 0 else 0, 1)
+        conversion_rate_agent = round((interested_count / total_allocated * 100) if total_allocated > 0 else 0, 1)
+
         team_performance.append({
             'user': agent,
             'total_leads': total_leads,
-            'contacted_leads': contacted_leads,
-            'interested_leads': interested_leads,
-            'contact_rate': contact_rate,
-            'interested_rate': interested_rate,
-            'conversion_rate': agent_conversion_rate
+            'total_leads': total_allocated,
+            'contacted_leads': contacted_count,
+            'interested_leads': interested_count,
+            'contact_rate': min(contact_rate_agent, 100),
+            'interested_rate': min(interested_rate_agent, 100),
+            'conversion_rate': min(conversion_rate_agent, 100)
         })
 
+    team_performance.sort(key=lambda x: x['conversion_rate'], reverse=True)
+
     context = {
+        'totallead':totallead,
         'total_leads': total_leads,
         'allocated_leads': allocated_leads,
         'allocation_rate': allocation_rate,
@@ -228,11 +224,16 @@ def dashboard(request):
         'recent_allocations': recent_allocations,
         'status_counts': status_counts,
         'team_performance': team_performance,
-        'lead_status_data': json.dumps(lead_status_data),
-        'performance_data': json.dumps(performance_data),
+        'lead_status_labels': lead_status_labels,
+        'lead_status_values': lead_status_values,
+        'performance_months': months,
+        'allocated_data': allocated_data,
+        'contacted_data': contacted_data,
+        'conversion_data': conversion_data,
     }
 
     return render(request, 'dashboard.html', context)
+
 @login_required
 def dashboard2(request):
     """
@@ -465,6 +466,7 @@ def usertask(request):
     """
     # Get all allocations for the current user
     allocations = LeadAllocation.objects.filter(user=request.user, is_active=True).select_related('file')
+
     
     leads_data = []
     total_leads = 0
@@ -481,6 +483,9 @@ def usertask(request):
         
         # Get existing call records for this allocation
         call_records = CallRecord.objects.filter(allocation=allocation)
+        
+        
+       
         call_records_dict = {record.phone_number: record for record in call_records}
         
         # Process each phone number
@@ -502,6 +507,7 @@ def usertask(request):
                         'call_record_id': call_record.id,
                     }
                     leads_data.append(lead_data)
+
                 
                 # Count all statistics (for stats bar)
                 if call_record.status == 'contacted':
@@ -510,6 +516,7 @@ def usertask(request):
                     total_interested += 1
                 elif call_record.status == 'callback':
                     total_callbacks += 1
+         
                     
             else:
                 # Show numbers without call records (they are 'new' by default)
@@ -826,6 +833,7 @@ def allocate_leads(request):
         data = json.loads(request.body)
         file_id = data.get('file_id')
         allocations = data.get('allocations', [])
+        print("this is the file allocation:",allocations)
 
         if not file_id or not allocations:
             return JsonResponse({'error': 'Missing required data'}, status=400)
@@ -892,6 +900,7 @@ def allocate_leads(request):
                 end_index=end_index - 1,
                 allocated_file=text_output
             )
+           
 
             results.append({
                 'user_id': user.id,
@@ -1015,3 +1024,80 @@ def archieve(request):
     }
 
     return render(request, 'arche.html', context)
+
+
+
+
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def login_api(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    print(username,password)
+
+    if not username or not password:
+        return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        dashboard_url = 'dashboard' if user.is_superuser else 'dashboard2'
+        return Response({
+            "message": "Login successful",
+            "redirect_to": dashboard_url,
+            "is_superuser": user.is_superuser
+        }, status=status.HTTP_200_OK)
+
+    return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# views.py
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_recording(request):
+    print("funtion run")
+    username = request.POST.get('username')
+    recording_file = request.FILES.get('recording')
+    filename = request.POST.get('filename', recording_file.name if recording_file else 'unknown')
+    
+    if not username or not recording_file:
+        return Response({"error": "Username and recording file are required"}, status=400)
+    
+    try:
+        user_detail = Userdetail.objects.get(user__username=username)
+        
+        # Create file path based on user's recording path
+        file_path = os.path.join(user_detail.recording_path, filename)
+        
+        # Save the file to the server
+        with open(file_path, 'wb+') as destination:
+            for chunk in recording_file.chunks():
+                destination.write(chunk)
+        
+        # Create recording record in database
+        recording = CallRecording(
+            user=user_detail,
+            filename=filename,
+            original_filename=filename,
+            file_path=file_path,
+            file_size=os.path.getsize(file_path),
+            upload_time=timezone.now(),
+            # Set other fields as needed
+        )
+        recording.save()
+        
+        return Response({
+            "message": "Recording uploaded successfully",
+            "recording_id": recording.id,
+        }, status=201)
+        
+    except Userdetail.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
