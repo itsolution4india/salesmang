@@ -1,9 +1,9 @@
 from django.shortcuts import render,redirect,HttpResponse,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User,auth
 from django.contrib.auth.decorators import login_required,user_passes_test
-from django.http import JsonResponse
+from django.http import JsonResponse,Http404
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
@@ -13,6 +13,7 @@ from django.db.models import Count, Sum, Q, Avg
 from rest_framework.permissions import IsAuthenticated
 import random
 import os
+import logging
 from rest_framework.decorators import api_view
 from rest_framework.decorators import api_view, permission_classes,authentication_classes
 from rest_framework.permissions import AllowAny
@@ -23,8 +24,9 @@ from .serializers import LoginSerializer
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from datetime import datetime,timedelta
+from django.conf import settings
 from django.utils import timezone
-from .models import LeadFile, LeadAllocation, User,CallRecord,Userdetail,CallRecording
+from .models import LeadFile, LeadAllocation, User,CallRecord,UserDetail,CallRecording
 from django.db import models
 # Create your views here. 
 def admin_check(user):
@@ -951,6 +953,7 @@ def get_lead_files(request):
     
     return JsonResponse({'files': files_data})
 
+
 @require_http_methods(["GET"])
 def get_users(request):
     users = User.objects.filter(is_active=True).exclude(id=request.user.id)
@@ -1027,9 +1030,22 @@ def archieve(request):
 
 
 
+def logouts(request):
+      auth.logout(request)
+      return redirect('/')
 
+from django.contrib.auth import authenticate, login, logout
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import os
 
+# LOGOUT API
 
+# LOGIN API
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -1037,67 +1053,374 @@ def archieve(request):
 def login_api(request):
     username = request.data.get("username")
     password = request.data.get("password")
-    print(username,password)
 
     if not username or not password:
         return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
     user = authenticate(request, username=username, password=password)
-
     if user is not None:
         login(request, user)
-        dashboard_url = 'dashboard' if user.is_superuser else 'dashboard2'
+        detail = getattr(user, "detail", None)
+
         return Response({
             "message": "Login successful",
-            "redirect_to": dashboard_url,
-            "is_superuser": user.is_superuser
+            "is_superuser": user.is_superuser,
+            "username": user.username,
+            "recording_path": detail.recording_path if detail else "",
+            "mobile_name": detail.mobile_name if detail else ""
         }, status=status.HTTP_200_OK)
 
     return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-# views.py
-@csrf_exempt
-@api_view(['POST'])
+# LOGOUT API
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
+def logout_api(request):
+    logout(request)
+    return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def upload_recording(request):
-    print("funtion run")
-    username = request.POST.get('username')
-    recording_file = request.FILES.get('recording')
-    filename = request.POST.get('filename', recording_file.name if recording_file else 'unknown')
-    
-    if not username or not recording_file:
-        return Response({"error": "Username and recording file are required"}, status=400)
+    """
+    Flutter will send recordings here via multipart form data.
+    Stored inside MEDIA_ROOT/recordings/<username>/
+    """
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request content type: {request.content_type}")
+    logger.info(f"Request META: {request.META.get('CONTENT_TYPE', 'Not set')}")
+    logger.info(f"Request POST keys: {list(request.POST.keys())}")
+    logger.info(f"Request FILES keys: {list(request.FILES.keys())}")
     
     try:
-        user_detail = Userdetail.objects.get(user__username=username)
+        # Extract username from POST data
+        username = request.POST.get("username")
         
-        # Create file path based on user's recording path
-        file_path = os.path.join(user_detail.recording_path, filename)
+        # Extract file from FILES
+        file = request.FILES.get("file")
         
-        # Save the file to the server
-        with open(file_path, 'wb+') as destination:
-            for chunk in recording_file.chunks():
-                destination.write(chunk)
+        logger.info(f"Extracted username: '{username}'")
+        logger.info(f"Extracted file: {file}")
         
-        # Create recording record in database
-        recording = CallRecording(
-            user=user_detail,
-            filename=filename,
-            original_filename=filename,
-            file_path=file_path,
-            file_size=os.path.getsize(file_path),
-            upload_time=timezone.now(),
-            # Set other fields as needed
-        )
-        recording.save()
+        if file:
+            logger.info(f"File name: {file.name}")
+            logger.info(f"File size: {file.size}")
+            logger.info(f"File content type: {file.content_type}")
         
-        return Response({
-            "message": "Recording uploaded successfully",
-            "recording_id": recording.id,
-        }, status=201)
+        # Validate required fields
+        if not username:
+            error_msg = "Username is required"
+            logger.error(f"ERROR: {error_msg}")
+            return JsonResponse({
+                "error": error_msg,
+                "received_post_keys": list(request.POST.keys()),
+                "received_files_keys": list(request.FILES.keys()),
+                "content_type": request.content_type,
+            }, status=400)
         
-    except Userdetail.DoesNotExist:
-        return Response({"error": "User not found"}, status=404)
+        if not file:
+            error_msg = "File is required"
+            logger.error(f"ERROR: {error_msg}")
+            return JsonResponse({
+                "error": error_msg,
+                "received_post_keys": list(request.POST.keys()),
+                "received_files_keys": list(request.FILES.keys()),
+                "content_type": request.content_type,
+            }, status=400)
+
+        # Validate file size (optional - set a reasonable limit)
+        max_file_size = 100 * 1024 * 1024  # 100MB
+        if file.size > max_file_size:
+            error_msg = f"File too large. Maximum size is {max_file_size // (1024*1024)}MB"
+            logger.error(f"ERROR: {error_msg}")
+            return JsonResponse({"error": error_msg}, status=400)
+
+        # Validate file extension
+        allowed_extensions = ['.m4a', '.mp3', '.wav', '.amr', '.3gp', '.aac', '.ogg']
+        file_extension = os.path.splitext(file.name.lower())[1]
+        
+        if file_extension not in allowed_extensions:
+            error_msg = f"Invalid file type. Allowed types: {', '.join(allowed_extensions)}"
+            logger.error(f"ERROR: {error_msg}")
+            return JsonResponse({"error": error_msg}, status=400)
+
+        # Create user directory
+        user_dir = os.path.join(settings.MEDIA_ROOT, "recordings", username)
+        try:
+            os.makedirs(user_dir, exist_ok=True)
+            logger.info(f"Created/verified directory: {user_dir}")
+        except OSError as e:
+            logger.error(f"Error creating directory {user_dir}: {e}")
+            return JsonResponse({"error": "Failed to create upload directory"}, status=500)
+
+        # Generate safe filename to avoid conflicts
+        base_name, ext = os.path.splitext(file.name)
+        safe_filename = file.name
+        counter = 1
+        
+        file_path = os.path.join(user_dir, safe_filename)
+        
+        # Handle duplicate filenames
+        while os.path.exists(file_path):
+            safe_filename = f"{base_name}_{counter}{ext}"
+            file_path = os.path.join(user_dir, safe_filename)
+            counter += 1
+        
+        logger.info(f"Saving file to: {file_path}")
+
+        # Save file in chunks to handle large files
+        try:
+            with open(file_path, "wb") as dest:
+                for chunk in file.chunks():
+                    dest.write(chunk)
+            
+            # Verify file was written correctly
+            saved_size = os.path.getsize(file_path)
+            if saved_size != file.size:
+                logger.error(f"File size mismatch. Expected: {file.size}, Actual: {saved_size}")
+                os.remove(file_path)  # Clean up partial file
+                return JsonResponse({"error": "File upload incomplete"}, status=500)
+            
+        except IOError as e:
+            logger.error(f"Error saving file: {e}")
+            # Clean up partial file if it exists
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except:
+                    pass
+            return JsonResponse({"error": "Failed to save file"}, status=500)
+
+        logger.info(f"File saved successfully: {file_path}")
+        
+        response_data = {
+            "message": "File uploaded successfully", 
+            "file_path": file_path,
+            "username": username,
+            "file_name": safe_filename,
+            "original_name": file.name,
+            "file_size": file.size,
+            "saved_size": saved_size,
+            "content_type": file.content_type
+        }
+        
+        logger.info(f"Upload successful: {response_data}")
+        return JsonResponse(response_data)
+        
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        logger.error(f"Unexpected exception during upload: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "error": f"Upload failed: {str(e)}"
+        }, status=500)
+
+
+# Optional: Add a view to list uploaded files for a user
+@csrf_exempt
+def list_user_recordings(request, username):
+    """
+    List all recordings for a specific user
+    """
+    try:
+        user_dir = os.path.join(settings.MEDIA_ROOT, "recordings", username)
+        
+        if not os.path.exists(user_dir):
+            return JsonResponse({
+                "message": f"No recordings found for user: {username}",
+                "files": []
+            })
+        
+        files = []
+        for filename in os.listdir(user_dir):
+            file_path = os.path.join(user_dir, filename)
+            if os.path.isfile(file_path):
+                try:
+                    stat = os.stat(file_path)
+                    files.append({
+                        "name": filename,
+                        "size": stat.st_size,
+                        "created": stat.st_ctime,
+                        "modified": stat.st_mtime
+                    })
+                except OSError:
+                    continue
+        
+        return JsonResponse({
+            "username": username,
+            "files": files,
+            "count": len(files)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error listing recordings for {username}: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+# Optional: Add a view to get upload statistics
+@csrf_exempt
+def upload_stats(request):
+    """
+    Get general upload statistics
+    """
+    try:
+        recordings_dir = os.path.join(settings.MEDIA_ROOT, "recordings")
+        
+        if not os.path.exists(recordings_dir):
+            return JsonResponse({
+                "total_users": 0,
+                "total_files": 0,
+                "total_size": 0
+            })
+        
+        total_users = 0
+        total_files = 0
+        total_size = 0
+        
+        for user_dir in os.listdir(recordings_dir):
+            user_path = os.path.join(recordings_dir, user_dir)
+            if os.path.isdir(user_path):
+                total_users += 1
+                
+                for filename in os.listdir(user_path):
+                    file_path = os.path.join(user_path, filename)
+                    if os.path.isfile(file_path):
+                        try:
+                            total_files += 1
+                            total_size += os.path.getsize(file_path)
+                        except OSError:
+                            continue
+        
+        return JsonResponse({
+            "total_users": total_users,
+            "total_files": total_files,
+            "total_size": total_size,
+            "total_size_mb": round(total_size / (1024 * 1024), 2)
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting upload stats: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+    
+
+
+
+
+
+@login_required
+def recordings_dashboard(request):
+    # Base directory where recordings are stored
+      # Base directory where recordings are stored
+    recordings_base_dir = os.path.join(settings.MEDIA_ROOT, 'recordings')
+    
+    # Get date filter from request
+    date_filter = request.GET.get('date_filter', 'all')
+    custom_date = request.GET.get('custom_date', '')
+    
+    # Calculate date range based on filter
+    now = datetime.now()
+    start_date = None
+    end_date = None
+    
+    if date_filter == 'today':
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'yesterday':
+        yesterday = now - timedelta(days=1)
+        start_date = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'this_week':
+        start_date = now - timedelta(days=now.weekday())
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'last_week':
+        start_date = now - timedelta(days=now.weekday() + 7)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = start_date + timedelta(days=6)
+        end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'this_month':
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_date = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'last_month':
+        first_day_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_date = (first_day_this_month - timedelta(days=1)).replace(day=1)
+        end_date = first_day_this_month - timedelta(days=1)
+        end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+    elif date_filter == 'custom' and custom_date:
+        try:
+            custom_date_obj = datetime.strptime(custom_date, '%Y-%m-%d')
+            start_date = custom_date_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = custom_date_obj.replace(hour=23, minute=59, second=59, microsecond=999999)
+        except ValueError:
+            pass
+    
+    # Get all user directories with their recordings
+    users_data = []
+    
+    try:
+        user_dirs = [d for d in os.listdir(recordings_base_dir) 
+                    if os.path.isdir(os.path.join(recordings_base_dir, d))]
+    except FileNotFoundError:
+        user_dirs = []
+    
+    # Get recordings for each user
+    total_recordings = 0
+    for username in user_dirs:
+        user_dir_path = os.path.join(recordings_base_dir, username)
+        user_recordings = []
+        
+        if os.path.exists(user_dir_path):
+            for file in os.listdir(user_dir_path):
+                file_path = os.path.join(user_dir_path, file)
+                if os.path.isfile(file_path):
+                    # Get file stats
+                    stat = os.stat(file_path)
+                    modified_date = datetime.fromtimestamp(stat.st_mtime)
+                    
+                    # Apply date filter if specified
+                    if start_date and end_date:
+                        if not (start_date <= modified_date <= end_date):
+                            continue
+                    
+                    user_recordings.append({
+                        'name': file,
+                        'size': round(stat.st_size / (1024 * 1024), 2),  # Size in MB
+                        'modified': stat.st_mtime,
+                        'modified_date': modified_date,
+                        'url': os.path.join(settings.MEDIA_URL, 'recordings', username, file)
+                    })
+        
+        # Sort recordings by modification time (newest first)
+        user_recordings.sort(key=lambda x: x['modified'], reverse=True)
+        
+        users_data.append({
+            'username': username,
+            'recordings': user_recordings,
+            'count': len(user_recordings)
+        })
+        
+        total_recordings += len(user_recordings)
+    
+    # Sort users by username
+    users_data.sort(key=lambda x: x['username'])
+    
+    # Format dates for display
+    if start_date and end_date:
+        if start_date.date() == end_date.date():
+            date_display = start_date.strftime("%B %d, %Y")
+        else:
+            date_display = f"{start_date.strftime('%B %d, %Y')} to {end_date.strftime('%B %d, %Y')}"
+    else:
+        date_display = "All Dates"
+    
+    context = {
+        'users_data': users_data,
+        'total_recordings': total_recordings,
+        'date_filter': date_filter,
+        'custom_date': custom_date,
+        'date_display': date_display,
+        'today': now.strftime('%Y-%m-%d'),
+    }
+    return render(request, 'recordings.html', context)

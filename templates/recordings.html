@@ -1,0 +1,448 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Admin - Call Recordings Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --text-color: #2c3e50;
+            --text-light: #7f8c8d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--secondary-color), var(--dark-color));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-content h1 {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .header-content h1 i {
+            font-size: 32px;
+        }
+        
+        .header-stats {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .filters-container {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--dark-color);
+        }
+        
+        .filter-select, .filter-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            background-color: white;
+            font-size: 15px;
+            min-width: 180px;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        
+        .filter-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .date-display {
+            margin-left: auto;
+            background: var(--light-color);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .users-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .user-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .user-header {
+            background: linear-gradient(135deg, var(--primary-color), #5dade2);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recording-count {
+            background-color: white;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .recordings-list {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .recording-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .recording-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recording-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recording-details {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        .recording-date {
+            background: var(--light-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .recording-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .audio-player {
+            width: 100%;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            color: #ddd;
+        }
+        
+        @media (max-width: 968px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .date-display {
+                margin-left: 0;
+            }
+            
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-select, .filter-input {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .users-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Scrollbar styling */
+        .recordings-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .recordings-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .recordings-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        
+        .recordings-list::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="admin-container">
+        <div class="header">
+            <div class="header-content">
+                <h1 style="color: white;"><i class="fas fa-headset" style="color: white;"></i> Admin Call Recordings Dashboard</h1>
+                <p>View and manage all user call recordings filtered by date</p>
+            </div>
+            <div class="header-stats">
+                <span class="stat-number">{{ total_recordings }}</span>
+                <span class="stat-label">Total Recordings</span>
+            </div>
+        </div>
+        
+        <form method="get" class="filters-container">
+            <div class="filter-group">
+                <!-- <label for="date_filter">Date Filter</label> -->
+                <select class="filter-select" name="date_filter" id="date_filter" onchange="toggleCustomDate()">
+                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>All Dates</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="this_week" {% if date_filter == 'this_week' %}selected{% endif %}>This Week</option>
+                    <option value="last_week" {% if date_filter == 'last_week' %}selected{% endif %}>Last Week</option>
+                    <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                    <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+                    <option value="custom" {% if date_filter == 'custom' %}selected{% endif %}>Custom Date</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" id="custom_date_group" style="display: {% if date_filter == 'custom' %}block{% else %}none{% endif %};">
+                <label for="custom_date">Select Date</label>
+                <input type="date" class="filter-input" name="custom_date" id="custom_date" value="{{ custom_date }}" max="{{ today }}">
+            </div>
+            
+            <button type="submit" class="filter-btn">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            
+            <div class="date-display">
+                <i class="fas fa-calendar-alt"></i> {{ date_display }}
+            </div>
+        </form>
+        
+        <div class="users-container" id="usersContainer">
+            {% for user in users_data %}
+            <div class="user-card" data-username="{{ user.username }}">
+                <div class="user-header">
+                    <h3><i class="fas fa-user"></i> {{ user.username }}</h3>
+                    <span class="recording-count">{{ user.count }} recording{{ user.count|pluralize }}</span>
+                </div>
+                
+                <div class="recordings-list">
+                    {% if user.recordings %}
+                        {% for recording in user.recordings %}
+                        <div class="recording-item">
+                            <div class="recording-name">
+                                <i class="fas fa-file-audio"></i> {{ recording.name }}
+                            </div>
+                            <div class="recording-details">
+                                <span>{{ recording.size }} MB</span>
+                                <span class="recording-date">{{ recording.modified_date|date:"M d, Y H:i" }}</span>
+                            </div>
+                            <audio controls class="audio-player">
+                                <source src="{{ recording.url }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <div class="recording-actions">
+                                <a href="{{ recording.url }}" download class="btn btn-primary">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No recordings found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <i class="fas fa-users"></i>
+                <h3>No users found</h3>
+                <p>There are no user directories with recordings for the selected date range.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function toggleCustomDate() {
+            const dateFilter = document.getElementById('date_filter');
+            const customDateGroup = document.getElementById('custom_date_group');
+            
+            if (dateFilter.value === 'custom') {
+                customDateGroup.style.display = 'block';
+            } else {
+                customDateGroup.style.display = 'none';
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today as max date for custom date picker
+            const customDate = document.getElementById('custom_date');
+            if (customDate) {
+                customDate.max = new Date().toISOString().split('T')[0];
+            }
+        });
+    </script>
+{% endblock %}

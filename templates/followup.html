@@ -440,9 +440,9 @@ tr:hover {
                         {% endif %}
                     </td>
                     <td class="actions-cell">
-                        <button class="action-button call-button" data-id="{{ record.id }}" title="Call">
+                        <a href="tel:+91{{record.phone_number}}" class="action-button call-button" data-id="{{ record.id }}" title="Call">
                             <i class="fas fa-phone"></i>
-                        </button>
+                        </a>
                         <button class="action-button edit-button" data-id="{{ record.id }}" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const recordId = this.getAttribute('data-id');
             // Here you would implement the actual call functionality
-            alert(`Initiating call for record ID: ${recordId}`);
+  
             // This would typically integrate with your telephony system
         });
     });

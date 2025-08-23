@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LeadFile, LeadAllocation, CallRecord,Userdetail,CallRecording
+from .models import LeadFile, LeadAllocation, CallRecord,UserDetail,CallRecording
 
 
 @admin.register(LeadFile)
@@ -22,6 +22,6 @@ class CallRecordAdmin(admin.ModelAdmin):
     list_filter = ('status',)
     search_fields = ('phone_number',)
 
-admin.site.register(Userdetail)
+admin.site.register(UserDetail)
 admin.site.register(CallRecording)
 

@@ -19,13 +19,17 @@ urlpatterns = [
     path('follow-ups/',views.followsup,name='followsup'),
     path('update_call_record/', views.update_call_record, name='update_call_record'),
     path('delete_call_record/', views.delete_call_record, name='delete_call_record'),
-     path('update-call-record2/', views.update_call_record2, name='update_call_record2'),
+    path('update-call-record2/', views.update_call_record2, name='update_call_record2'),
     path('delete-call-record2/', views.delete_call_record2, name='delete_call_record2'),
+    path('logout/',views.logouts,name="logout"),
+    path('recording/',views.recordings_dashboard,name="recordings_dashboard"),
+
 
 
 
     #api
         path('api/login/', views.login_api, name='api-login'),
+        path("api/logout/", views.logout_api,name='api-logout'),
         path('api/upload-recording/', views.upload_recording, name='upload-recording'),
 
     

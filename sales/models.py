@@ -3,18 +3,17 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-class Userdetail(User):
-    user=models.OneToOneField(User,primary_key=True,parent_link=True,on_delete=models.CASCADE)
-    phone=models.CharField(max_length=12)
-    recording_path=models.CharField(max_length=100)
-    mobile_name=models.CharField(max_length=12)
+class UserDetail(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="detail")
+    phone = models.CharField(max_length=12)
+    recording_path = models.CharField(max_length=255)
+    mobile_name = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.user.username
-    
+        return f"{self.user.username} - {self.phone}"
 
 class CallRecording(models.Model):
-    user = models.ForeignKey(Userdetail, on_delete=models.CASCADE, related_name='recordings')
+    user = models.ForeignKey(UserDetail, on_delete=models.CASCADE, related_name='recordings')
     filename = models.CharField(max_length=255)
     original_filename = models.CharField(max_length=255)
     file_path = models.CharField(max_length=500)
