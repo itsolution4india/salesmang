@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-a=5bd#z=-5xjm829fh7f%5v-o7rfa2=1@javni6p0v!*k!td@v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.29.182','localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['82.112.238.26','localhost', '127.0.0.1', 'salesdashboard.wtsmessage.xyz', 'www.salesdashboard.wtsmessage.xyz', '.wtsmessage.xyz']
 
 
 # Application definition
@@ -121,6 +121,40 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS=[ 
 os.path.join(BASE_DIR,'static')] 
 STATIC_ROOT= os.path.join(BASE_DIR,'assets') 
+ 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/error.log'),
+        },
+        '404_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/404.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['file', '404_file'],  # Both handlers here
+            'level': 'WARNING',  # Handles WARNING and above (including ERROR)
+            'propagate': False,
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
  
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
