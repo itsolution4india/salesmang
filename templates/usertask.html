@@ -10,55 +10,62 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-           
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+            background: #f5f7fa;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
-            overflow: scroll;
+            overflow: hidden;
         }
 
         .header {
             background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .header p {
-            font-size: 1.1rem;
+            font-size: 1rem;
             opacity: 0.9;
         }
 
         .stats-bar {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: wrap;
+
+         
+            /* justify-content: space-around; */
             background: #f8f9fa;
-            padding: 20px;
+            padding: 15px 10px;
             border-bottom: 1px solid #e9ecef;
         }
 
         .stat-item {
             text-align: center;
-            padding: 10px;
+            padding: 8px;
+            min-width: 25%;
+            margin-bottom: 10px;
+            flex: 1;
+            min-width: 150px;
         }
 
         .stat-number {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: #2c3e50;
             display: block;
@@ -66,13 +73,14 @@
 
         .stat-label {
             color: #6c757d;
-            font-size: 0.9rem;
-            margin-top: 5px;
+            font-size: 0.8rem;
+            margin-top: 3px;
         }
 
         .table-container {
-            padding: 30px;
+            padding: 15px;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .leads-table {
@@ -81,7 +89,8 @@
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            min-width: 600px;
         }
 
         .leads-table thead {
@@ -91,14 +100,14 @@
 
         .leads-table th,
         .leads-table td {
-            padding: 15px;
+            padding: 12px 8px;
             text-align: left;
             border-bottom: 1px solid #e9ecef;
         }
 
         .leads-table th {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -114,12 +123,14 @@
         }
 
         .status-badge {
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: inline-block;
+            white-space: nowrap;
         }
 
         .status-new {
@@ -154,19 +165,24 @@
 
         .action-buttons {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-edit {
@@ -189,6 +205,19 @@
             box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
         }
 
+        /* Call button styling */
+        .btn-call {
+            background: #27ae60;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-call:hover {
+            background: #219653;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -200,17 +229,21 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(5px);
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .modal-content {
             background: white;
-            margin: 5% auto;
+            margin: 0 auto;
             padding: 0;
-            border-radius: 20px;
-            width: 90%;
+            border-radius: 16px;
+            width: 100%;
             max-width: 600px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.4s ease;
+            position: relative;
         }
 
         @keyframes modalSlideIn {
@@ -225,10 +258,10 @@
         }
 
         .modal-header {
-            /* background: linear-gradient(135deg, #2c3e50, #3498db); */
+            background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
-            padding: 25px;
-            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            border-radius: 16px 16px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -236,13 +269,13 @@
 
         .modal-header h2 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 600;
         }
 
         .close {
-            color: rgb(4, 4, 4);
-            font-size: 28px;
+            color: white;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -260,16 +293,16 @@
         }
 
         .modal-body {
-            padding: 30px;
+            padding: 20px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             color: #2c3e50;
             font-size: 0.9rem;
@@ -277,9 +310,9 @@
 
         .form-control {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px;
             border: 2px solid #e9ecef;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 1rem;
             transition: all 0.3s ease;
             background: #f8f9fa;
@@ -303,7 +336,7 @@
         }
 
         .modal-footer {
-            padding: 20px 30px;
+            padding: 16px 20px;
             border-top: 1px solid #e9ecef;
             display: flex;
             justify-content: flex-end;
@@ -313,7 +346,7 @@
         .btn-save {
             background: linear-gradient(135deg, #27ae60, #229954);
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -329,7 +362,7 @@
         .btn-cancel {
             background: #6c757d;
             color: white;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -348,284 +381,494 @@
 
         .date-time {
             color: #6c757d;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        /* Mobile-specific improvements */
+          @media (max-width: 1024px) {
+            .stat-item {
+                min-width: 45%;
+            }
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+            
             .container {
-                margin: 10px;
-                border-radius: 15px;
+                margin: 0;
+                border-radius: 12px;
             }
 
             .header {
-                padding: 20px;
+                padding: 16px;
             }
 
             .header h1 {
-                font-size: 2rem;
+                font-size: 1.5rem;
             }
 
             .stats-bar {
-                flex-direction: column;
-                gap: 10px;
+                padding: 12px 5px;
+            }
+
+            .stat-item {
+                min-width: 45%;
+                padding: 5px;
+                margin-bottom: 5px;
+            }
+
+            .stat-number {
+                font-size: 1.4rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
             }
 
             .table-container {
-                padding: 15px;
+                padding: 10px;
+                overflow-x: auto;
             }
 
             .leads-table {
-                font-size: 0.85rem;
+                min-width: 100%;
+                font-size: 0.8rem;
             }
 
             .leads-table th,
             .leads-table td {
-                padding: 10px 8px;
+                padding: 10px 6px;
             }
 
+            /* Keep action buttons in a row but make them smaller */
             .action-buttons {
-                flex-direction: column;
+                flex-direction: row !important;
                 gap: 4px;
+                flex-wrap: wrap;
             }
 
             .btn {
-                padding: 6px 12px;
+                padding: 6px 8px;
+                font-size: 0.7rem;
+                min-height: 32px;
+                flex: 1;
+                min-width: 60px;
+            }
+
+            .modal {
+                padding: 10px;
+            }
+            
+            .modal-content {
+                width: 100%;
+                margin: 0 auto;
+                border-radius: 12px;
+            }
+
+            .modal-header {
+                padding: 16px;
+            }
+
+            .modal-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .modal-body {
+                padding: 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+            }
+            
+            .modal-footer .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .stat-item {
+                /* min-width: 100%; */
+                margin-bottom: 8px;
+            }
+            
+            /* KEEP ACTIONS COLUMN VISIBLE - Only hide less important columns */
+            .leads-table th:nth-child(2),
+            .leads-table td:nth-child(2) {
+                display: none; /* Hide Status column instead */
+            }
+            
+            /* Make action buttons stack vertically on very small screens */
+            .action-buttons {
+              
+                flex-direction: row !important;
+                gap: 4px;
+            }
+            
+            .btn {
+                width: 100%;
+                min-width: auto;
+                font-size: 0.75rem;
+                padding: 8px 6px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            .modal-footer .btn:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .header p {
+                font-size: 0.8rem;
+            }
+            
+            .stat-number {
+                font-size: 1.2rem;
+            }
+            
+            .leads-table {
                 font-size: 0.75rem;
             }
-
-            .modal-content {
-                width: 95%;
-                margin: 10% auto;
+            
+            .leads-table th,
+            .leads-table td {
+                padding: 8px 4px;
+            }
+            
+            /* Action buttons remain visible and stack vertically */
+            .action-buttons {
+                flex-direction: row !important;
+                gap: 3px;
+            }
+            
+            .btn {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+                min-height: 36px; /* Ensure good touch targets */
             }
         }
+
+        /* Alternative approach: Make table more mobile-friendly */
+        @media (max-width: 576px) {
+            /* Alternative: Convert to card layout for very small screens */
+            .leads-table-mobile {
+                display: none; /* Hide regular table */
+            }
+            
+            .leads-cards {
+                display: block;
+            }
+            
+            .lead-card {
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+            
+            .lead-card .phone-number {
+                font-size: 1.1rem;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+            
+            .lead-card .status-badge {
+                margin-bottom: 12px;
+            }
+            
+            .lead-card .action-buttons {
+                justify-content: stretch;
+            }
+        }
+
+        
     </style>
-    {% endblock %}
+{% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="header">
+        <h1 style="color: cornsilk;;">Lead Management Dashboard</h1>
+        <p>Employee Portal - New Leads to Contact</p>
+        {% if showing_new_only %}
+        <small style="color: #ecf0f1; margin-top: 8px; display: block;">
+            <i>Showing only leads with 'New' status - ready for contact</i>
+        </small>
+        {% endif %}
+    </div>
 
- <div class="container">
-        <div class="header">
-            <h1>Lead Management Dashboard</h1>
-            <p>Employee Portal - New Leads to Contact</p>
-            {% if showing_new_only %}
-            <small style="color: #ecf0f1; margin-top: 10px; display: block;">
-                <i>Showing only leads with 'New' status - ready for contact</i>
-            </small>
-            {% endif %}
+    <div class="d-flex stats-bar" style="display: flex;justify-content: space-evenly;gap: 10px;">
+        <div class="stat-item" style="
+    /* width: 100%; */
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    width: 100px;
+    
+">
+            <span class="stat-number">{{ leads_data|length }}</span>
+            <div class="stat-label">New Leads</div>
         </div>
-
-        <div class="stats-bar">
-            <div class="stat-item">
-                <span class="stat-number">{{ leads_data|length }}</span>
-                <div class="stat-label">New Leads to Contact</div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">{{ total_contacted }}</span>
-                <div class="stat-label">Total Contacted</div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">{{ total_interested }}</span>
-                <div class="stat-label">Total Interested</div>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number">{{ total_callbacks }}</span>
-                <div class="stat-label">Total Callbacks</div>
-            </div>
+        <div class="stat-item" style="
+    /* width: 100%; */
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    width: 100px;
+">
+            <span class="stat-number">{{ total_contacted }}</span>
+            <div class="stat-label">Total Contacted</div>
         </div>
-
-        <div class="table-container">
-            <table class="leads-table">
-                <thead>
-                    <tr>
-                        <th>Phone Number</th>
-                        <th>Status</th>
-                        <th>Call Time</th>
-                        <th>Duration</th>
-                        <th>Callback Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lead in leads_data %}
-                    <tr>
-                        <td class="phone-number">{{ lead.phone_number }}</td>
-                        <td>
-                            <span class="status-badge status-{{ lead.status }}">
-                                {% if lead.status == 'new' %}New
-                                {% elif lead.status == 'contacted' %}Contacted
-                                {% elif lead.status == 'interested' %}Interested
-                                {% elif lead.status == 'not_interested' %}Not Interested
-                                {% elif lead.status == 'invalid' %}Invalid
-                                {% elif lead.status == 'callback' %}Callback Requested
-                                {% endif %}
-                            </span>
-                        </td>
-                        <td class="date-time">
-                            {% if lead.call_time %}
-                                {{ lead.call_time|date:"M d, Y H:i" }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>{{ lead.duration }} sec</td>
-                        <td class="date-time">
-                            {% if lead.callback_date %}
-                                {{ lead.callback_date|date:"M d, Y H:i" }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                 <a href="tel:+91{{lead.phone_number}}" class="btn" style="background-color: #27ae60;" 
-                                   >
-                                    📞 
-                            </a>
-                                <button class="btn btn-edit" 
-                                    onclick="openEditModal('{{ lead.phone_number }}', '{{ lead.status }}', '{{ lead.call_time|date:"Y-m-d\TH:i" }}', '{{ lead.notes|escapejs }}', '{{ lead.duration }}', '{{ lead.allocation_id }}', '{% if lead.callback_date %}{{ lead.callback_date|date:"Y-m-d\TH:i" }}{% endif %}', '{{ lead.call_record_id }}')">
-                                    Edit
-                                </button>
-                                <!-- <button class="btn btn-delete" 
-                                    onclick="deleteLead('{{ lead.phone_number }}', '{{ lead.allocation_id }}')">
-                                    Delete
-                                </button> -->
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px; color: #6c757d;">
-                            No leads allocated to you yet.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="stat-item" style="
+    /* width: 100%; */
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    width: 100px;
+">
+            <span class="stat-number">{{ total_interested }}</span>
+            <div class="stat-label">Total Interested</div>
+        </div>
+        <div class="stat-item" style="
+    /* width: 100%; */
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 5px;
+    border-radius: 5px;
+    text-align: center;
+    width: 100px;
+">
+            <span class="stat-number">{{ total_callbacks }}</span>
+            <div class="stat-label">Total Callbacks</div>
         </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edit Lead Record</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    {% csrf_token %}
-                    <input type="hidden" id="allocationId" name="allocation_id">
-                    <input type="hidden" id="callRecordId" name="call_record_id">
-                    
-                    <div class="form-group">
-                        <label for="phoneNumber">Phone Number</label>
-                        <input type="text" class="form-control" id="phoneNumber" name="phone_number" readonly>
-                    </div>
+    <div class="table-container">
+        <table class="leads-table">
+            <thead>
+                <tr>
+                    <th>Phone Number</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads_data %}
+                <tr>
+                    <td class="phone-number">{{ lead.phone_number }}</td>
+                    <td>
+                        <span class="status-badge status-{{ lead.status }}">
+                            {% if lead.status == 'new' %}New
+                            {% elif lead.status == 'contacted' %}Contacted
+                            {% elif lead.status == 'interested' %}Interested
+                            {% elif lead.status == 'not_interested' %}Not Interested
+                            {% elif lead.status == 'invalid' %}Invalid
+                            {% elif lead.status == 'callback' %}Callback Requested
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="tel:+91{{lead.phone_number}}" class="btn btn-call">📞 Call</a>
+                            <button class="btn btn-edit" 
+                                onclick="openEditModal('{{ lead.phone_number }}', '{{ lead.status }}', '{{ lead.call_time|date:"Y-m-d\TH:i" }}', '{{ lead.notes|escapejs }}', '{{ lead.duration }}', '{{ lead.allocation_id }}', '{% if lead.callback_date %}{{ lead.callback_date|date:"Y-m-d\TH:i" }}{% endif %}', '{{ lead.call_record_id }}')">
+                                Edit
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #6c757d;">
+                        No leads allocated to you yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-                    <div class="form-group">
-                        <label for="status">Status</label>
-                        <select class="form-control" id="status" name="status">
-                            <option value="new">New</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="interested">Interested</option>
-                            <option value="not_interested">Not Interested</option>
-                            <option value="invalid">Invalid</option>
-                            <option value="callback">Callback Requested</option>
-                        </select>
-                    </div>
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Lead Record</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editForm">
+                {% csrf_token %}
+                <input type="hidden" id="allocationId" name="allocation_id">
+                <input type="hidden" id="callRecordId" name="call_record_id">
+                
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="text" class="form-control" id="phoneNumber" name="phone_number" readonly>
+                </div>
 
-                    <div class="form-group">
-                        <label for="callTime">Call Time</label>
-                        <input type="datetime-local" class="form-control" id="callTime" name="call_time">
-                    </div>
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select class="form-control" id="status" name="status">
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="interested">Interested</option>
+                        <option value="not_interested">Not Interested</option>
+                        <option value="invalid">Invalid</option>
+                        <option value="callback">Callback Requested</option>
+                    </select>
+                </div>
 
-                    <div class="form-group">
-                        <label for="duration">Duration (seconds)</label>
-                        <input type="number" class="form-control" id="duration" name="duration" min="0" placeholder="Enter call duration">
-                    </div>
+                <div class="form-group">
+                    <label for="callTime">Call Time</label>
+                    <input type="datetime-local" class="form-control" id="callTime" name="call_time">
+                </div>
 
-                    <div class="form-group">
-                        <label for="notes">Notes</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="Add your notes here..."></textarea>
-                    </div>
+                <div class="form-group">
+                    <label for="duration">Duration (seconds)</label>
+                    <input type="number" class="form-control" id="duration" name="duration" min="0" placeholder="Enter call duration">
+                </div>
 
-                    <div class="form-group" id="callbackGroup" style="display: none;">
-                        <label for="callbackDate">Callback Date <span style="color: red;">*</span></label>
-                        <input type="datetime-local" class="form-control" id="callbackDate" name="callback_date">
-                        <small class="form-text text-muted">Select when you want to callback this lead</small>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
-                <button type="button" class="btn btn-save" onclick="saveLead()">Save Changes</button>
-            </div>
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="Add your notes here..."></textarea>
+                </div>
+
+                <div class="form-group" id="callbackGroup" style="display: none;">
+                    <label for="callbackDate">Callback Date <span style="color: red;">*</span></label>
+                    <input type="datetime-local" class="form-control" id="callbackDate" name="callback_date">
+                    <small class="form-text text-muted">Select when you want to callback this lead</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+            <button type="button" class="btn btn-save" onclick="saveLead()">Save Changes</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+<script>
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
+        return cookieValue;
+    }
 
-        function openEditModal(phone, status, callTime, notes, duration, allocationId, callbackDate, callRecordId) {
-            document.getElementById('phoneNumber').value = phone;
-            document.getElementById('status').value = status;
-            document.getElementById('callTime').value = callTime;
-            document.getElementById('notes').value = notes;
-            document.getElementById('duration').value = duration;
-            document.getElementById('allocationId').value = allocationId;
-            document.getElementById('callRecordId').value = callRecordId;
-            document.getElementById('callbackDate').value = callbackDate || '';
-            
-            toggleCallbackField();
-            document.getElementById('editModal').style.display = 'block';
-        }
+    function openEditModal(phone, status, callTime, notes, duration, allocationId, callbackDate, callRecordId) {
+        document.getElementById('phoneNumber').value = phone;
+        document.getElementById('status').value = status;
+        document.getElementById('callTime').value = callTime;
+        document.getElementById('notes').value = notes;
+        document.getElementById('duration').value = duration;
+        document.getElementById('allocationId').value = allocationId;
+        document.getElementById('callRecordId').value = callRecordId;
+        document.getElementById('callbackDate').value = callbackDate || '';
+        
+        toggleCallbackField();
+        document.getElementById('editModal').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
 
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        document.body.style.overflow = 'auto'; // Re-enable scrolling
+    }
 
-        function saveLead() {
-            const formData = {
-                phone_number: document.getElementById('phoneNumber').value,
-                status: document.getElementById('status').value,
-                call_time: document.getElementById('callTime').value,
-                notes: document.getElementById('notes').value,
-                duration: document.getElementById('duration').value,
-                allocation_id: document.getElementById('allocationId').value,
-                callback_date: document.getElementById('callbackDate').value || null,
-                call_record_id: document.getElementById('callRecordId').value
-            };
+    function saveLead() {
+        const formData = {
+            phone_number: document.getElementById('phoneNumber').value,
+            status: document.getElementById('status').value,
+            call_time: document.getElementById('callTime').value,
+            notes: document.getElementById('notes').value,
+            duration: document.getElementById('duration').value,
+            allocation_id: document.getElementById('allocationId').value,
+            callback_date: document.getElementById('callbackDate').value || null,
+            call_record_id: document.getElementById('callRecordId').value
+        };
 
-            // Log the data being sent
-            console.log('Sending data:', formData);
+        // Log the data being sent
+        console.log('Sending data:', formData);
 
-            fetch('{% url "update_call_record" %}', {
+        fetch('{% url "update_call_record" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lead updated successfully!');
+                closeModal();
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving the lead.');
+        });
+    }
+
+    function deleteLead(phone, allocationId) {
+        if (confirm(`Are you sure you want to delete the record for ${phone}?`)) {
+            fetch('{% url "delete_call_record" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    phone_number: phone,
+                    allocation_id: allocationId
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Lead updated successfully!');
-                    closeModal();
+                    alert('Lead deleted successfully!');
                     location.reload();
                 } else {
                     alert('Error: ' + data.message);
@@ -633,71 +876,47 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while saving the lead.');
+                alert('An error occurred while deleting the lead.');
             });
         }
+    }
 
-        function deleteLead(phone, allocationId) {
-            if (confirm(`Are you sure you want to delete the record for ${phone}?`)) {
-                fetch('{% url "delete_call_record" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({
-                        phone_number: phone,
-                        allocation_id: allocationId
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Lead deleted successfully!');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the lead.');
-                });
-            }
+    function toggleCallbackField() {
+        const status = document.getElementById('status').value;
+        const callbackGroup = document.getElementById('callbackGroup');
+        const callbackDateInput = document.getElementById('callbackDate');
+        
+        if (status === 'callback') {
+            callbackGroup.style.display = 'block';
+            callbackDateInput.required = true;
+        } else {
+            callbackGroup.style.display = 'none';
+            callbackDateInput.required = false;
+            callbackDateInput.value = '';
         }
+    }
 
-        function toggleCallbackField() {
-            const status = document.getElementById('status').value;
-            const callbackGroup = document.getElementById('callbackGroup');
-            const callbackDateInput = document.getElementById('callbackDate');
-            
-            if (status === 'callback') {
-                callbackGroup.style.display = 'block';
-                callbackDateInput.required = true;
-            } else {
-                callbackGroup.style.display = 'none';
-                callbackDateInput.required = false;
-                callbackDateInput.value = '';
-            }
+    // Show/hide callback date field based on status
+    document.getElementById('status').addEventListener('change', toggleCallbackField);
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target == modal) {
+            closeModal();
         }
+    }
 
-        // Show/hide callback date field based on status
-        document.getElementById('status').addEventListener('change', toggleCallbackField);
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('editModal');
-            if (event.target == modal) {
-                closeModal();
-            }
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
         }
+    });
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeModal();
-            }
-        });
-    </script>
-
- {% endblock %}
+    // Prevent modal content from closing when clicking inside
+    document.querySelector('.modal-content').addEventListener('click', function(event) {
+        event.stopPropagation();
+    });
+</script>
+{% endblock %}
